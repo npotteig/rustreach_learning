@@ -59,10 +59,29 @@ def train(env_name,
     tensorboard_log = get_path(robot_name, algo, "log")
 
     model = TD3(
-        policy, env, learning_rate, buffer_size, learning_starts, batch_size, tau, gamma,
-        train_freq, gradient_steps, action_noise, replay_buffer_class, replay_buffer_kwargs,
-        optimize_memory_usage, policy_delay, target_policy_noise, target_noise_clip,
-        tensorboard_log, create_eval_env, policy_kwargs, verbose, seed, default_device)
+        policy=policy, 
+        env=env, 
+        learning_rate=learning_rate, 
+        buffer_size=buffer_size, 
+        learning_starts=learning_starts, 
+        batch_size=batch_size, 
+        tau=tau, 
+        gamma=gamma,
+        train_freq=train_freq, 
+        gradient_steps=gradient_steps, 
+        action_noise=action_noise, 
+        replay_buffer_class=replay_buffer_class, 
+        replay_buffer_kwargs=replay_buffer_kwargs,
+        optimize_memory_usage=optimize_memory_usage, 
+        policy_delay=policy_delay, 
+        target_policy_noise=target_policy_noise, 
+        target_noise_clip=target_noise_clip,
+        tensorboard_log=tensorboard_log, 
+        create_eval_env=create_eval_env,
+        policy_kwargs=policy_kwargs, 
+        verbose=verbose, 
+        seed=seed, 
+        device=default_device)
 
     model.learn(total_timesteps, callback, log_interval, eval_env, eval_freq,
                 n_eval_episodes, tb_log_name, eval_log_path, reset_num_timesteps)

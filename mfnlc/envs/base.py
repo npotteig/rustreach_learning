@@ -3,7 +3,6 @@ from typing import Dict
 
 import gym
 import numpy as np
-import safety_gym  # noqa
 from gym import Env
 
 from mfnlc.config import env_config

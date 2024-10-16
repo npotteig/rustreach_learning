@@ -17,6 +17,6 @@ def evaluate_controller():
 
 
 if __name__ == '__main__':
-    for _ in range(5):
-        learn()
-    evaluate_controller()
+    # for _ in range(5):
+    learn()
+    # evaluate_controller()

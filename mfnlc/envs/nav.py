@@ -25,14 +25,14 @@ class Continuous2DNav(EnvBase):
         self.obstacle_radius = 0.15
         self.collision_penalty = -0.01
         self.arrive_reward = 20
-        self.step_size = 0.01
+        self.step_size = 0.1
         self.robot_name = "Nav"
 
         self.goal_size = 500
         self.subgoal_size = 100
 
-        self.floor_lb = np.array([-1., -1.], dtype=np.float32)
-        self.floor_ub = np.array([1., 1.], dtype=np.float32)
+        self.floor_lb = np.array([-10., -10.], dtype=np.float32)
+        self.floor_ub = np.array([10., 10.], dtype=np.float32)
 
         self.init = None
         self.goal = None

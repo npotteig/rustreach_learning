@@ -1,7 +1,7 @@
 from typing import Dict
 
 import numpy as np
-from safety_gym.envs.engine import Engine
+# from safety_gym.envs.engine import Engine
 
 from mfnlc.config import env_config
 from mfnlc.envs import Continuous2DNav
@@ -58,14 +58,15 @@ class Planner:
             arrive_radius = env.arrive_radius
             resolution = np.max(env.floor_ub - env.floor_lb) / 100
         elif issubclass(type(self.env.unwrapped), SafetyGymBase):
-            env: Engine = self.env.unwrapped.env
-            assert not env.done, "reset env first"
-            robot_radius = env_config[self.env.robot_name]["robot_radius"]
-            arrive_radius = env.goal_size
-            floor_extends = env.placements_extents
-            lb = np.array(floor_extends[:2])
-            ub = np.array(floor_extends[2:])
-            resolution = np.max(ub - lb) / 100
+            # env: Engine = self.env.unwrapped.env
+            # assert not env.done, "reset env first"
+            # robot_radius = env_config[self.env.robot_name]["robot_radius"]
+            # arrive_radius = env.goal_size
+            # floor_extends = env.placements_extents
+            # lb = np.array(floor_extends[:2])
+            # ub = np.array(floor_extends[2:])
+            # resolution = np.max(ub - lb) / 100
+            pass
         else:
             raise NotImplementedError()
 

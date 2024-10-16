@@ -55,10 +55,30 @@ def train(env_name,
     robot_name = env_name.split("-")[0]
 
     tensorboard_log = get_path(robot_name, algo, "log")
-
-    model = PPO(policy, env, learning_rate, n_steps, batch_size, n_epochs, gamma, gae_lambda, clip_range, clip_range_vf,
-                ent_coef, vf_coef, max_grad_norm, use_sde, sde_sample_freq, target_kl, tensorboard_log, create_eval_env,
-                policy_kwargs, verbose, seed, device, _init_setup_model)
+    print(device)
+    model = PPO(policy=policy, 
+                env=env, 
+                learning_rate=learning_rate, 
+                n_steps=n_steps, 
+                batch_size=batch_size,
+                n_epochs=n_epochs, 
+                gamma=gamma, 
+                gae_lambda=gae_lambda, 
+                clip_range=clip_range, 
+                clip_range_vf=clip_range_vf,
+                ent_coef=ent_coef, 
+                vf_coef=vf_coef, 
+                max_grad_norm=max_grad_norm, 
+                use_sde=use_sde, 
+                sde_sample_freq=sde_sample_freq, 
+                target_kl=target_kl, 
+                tensorboard_log=tensorboard_log, 
+                create_eval_env=create_eval_env,
+                policy_kwargs=policy_kwargs, 
+                verbose=verbose, 
+                seed=seed, 
+                device=device, 
+                _init_setup_model=_init_setup_model)
 
     model.learn(total_timesteps, callback, log_interval, eval_env, eval_freq,
                 n_eval_episodes, tb_log_name, eval_log_path, reset_num_timesteps)

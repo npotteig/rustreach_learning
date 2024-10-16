@@ -1,7 +1,7 @@
 from typing import List
 
 import numpy as np
-from safety_gym.envs.engine import Engine
+# from safety_gym.envs.engine import Engine
 
 from mfnlc.envs import Continuous2DNav
 from mfnlc.envs.base import SafetyGymBase
@@ -37,18 +37,19 @@ class SearchSpace:
             obstacles = [Circle(obst, radius=obstacle_radius) for obst in obstacles_centers]
 
         elif issubclass(type(env.unwrapped), SafetyGymBase):
-            env: Engine = env.unwrapped.env
+            # env: Engine = env.unwrapped.env
 
-            floor_extends = env.placements_extents
-            lb = np.array(floor_extends[:2])
-            ub = np.array(floor_extends[2:])
+            # floor_extends = env.placements_extents
+            # lb = np.array(floor_extends[:2])
+            # ub = np.array(floor_extends[2:])
 
-            initial_state = env.robot_pos[:2]
-            goal_state = env.goal_pos[:2]
+            # initial_state = env.robot_pos[:2]
+            # goal_state = env.goal_pos[:2]
 
-            obstacles_centers = env.hazards_pos
-            obstacle_radius = env.hazards_size
-            obstacles = [Circle(obst[:2], radius=obstacle_radius) for obst in obstacles_centers]
+            # obstacles_centers = env.hazards_pos
+            # obstacle_radius = env.hazards_size
+            # obstacles = [Circle(obst[:2], radius=obstacle_radius) for obst in obstacles_centers]
+            pass
         else:
             raise NotImplementedError
 
