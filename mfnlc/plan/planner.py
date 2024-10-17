@@ -1,10 +1,10 @@
-from typing import Dict
+from typing import Dict, Union
 
 import numpy as np
 # from safety_gym.envs.engine import Engine
 
 from mfnlc.config import env_config
-from mfnlc.envs import Continuous2DNav
+from mfnlc.envs import Continuous2DNav, Bicycle
 from mfnlc.envs.base import SafetyGymBase
 from mfnlc.plan.common.geometry import Circle
 from mfnlc.plan.common.path import Path
@@ -51,8 +51,8 @@ class Planner:
         return algo
 
     def _extract_robot_info_from_env(self, support_margin: float):
-        if isinstance(self.env.unwrapped, Continuous2DNav):
-            env: Continuous2DNav = self.env.unwrapped
+        if isinstance(self.env.unwrapped, (Continuous2DNav, Bicycle)):
+            env: Union[Continuous2DNav, Bicycle] = self.env.unwrapped
             assert env.robot_pos is not None, "reset env first"
             robot_radius = env.robot_radius + support_margin
             arrive_radius = env.arrive_radius

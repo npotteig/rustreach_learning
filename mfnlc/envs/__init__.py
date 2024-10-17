@@ -10,6 +10,7 @@ from .car import CarNav
 from .doggo import DoggoNav
 from .nav import Continuous2DNav
 from .point import PointNav
+from .bicycle import Bicycle
 
 
 def get_env(env_name: str):
@@ -24,6 +25,8 @@ def get_env(env_name: str):
         env = TimeLimit(CarNav(), env_config[robot_name]["max_step"])
     elif env_name == "Doggo":
         env = TimeLimit(DoggoNav(), env_config[robot_name]["max_step"])
+    elif env_name == "Bicycle":
+        env = TimeLimit(Bicycle(), env_config[robot_name]["max_step"])
     # Training envs for controllers that do not consider obstacles
     elif env_name == "Nav-no-obst":
         env = TimeLimit(Continuous2DNav(no_obstacle=True), env_config[robot_name]["max_step"])
@@ -33,6 +36,8 @@ def get_env(env_name: str):
         env = TimeLimit(CarNav(no_obstacle=True), env_config[robot_name]["max_step"])
     elif env_name == "Doggo-no-obst":
         env = TimeLimit(DoggoNav(no_obstacle=True), env_config[robot_name]["max_step"])
+    elif env_name == "Bicycle-no-obst":
+        env = TimeLimit(Bicycle(no_obstacle=True), env_config[robot_name]["max_step"])
     # evaluation envs
     elif env_name == "Nav-eval":
         env = Continuous2DNav(end_on_collision=True)
@@ -42,6 +47,8 @@ def get_env(env_name: str):
         env = CarNav(end_on_collision=True)
     elif env_name == "Doggo-eval":
         env = DoggoNav(end_on_collision=True)
+    elif env_name == "Bicycle-eval":
+        env = Bicycle(end_on_collision=True)
     else:
         raise NotImplementedError(f"Unsupported environment - {env_name}")
 
