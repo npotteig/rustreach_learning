@@ -78,7 +78,7 @@ env_config = {
         }
     },
     "Bicycle": {
-        "max_step": 200,
+        "max_step": 100,
         "goal_dim": 2,
         "state_dim": 0,
         "sink": [0.0, 0.0, 0.0, 0.0],
@@ -109,3 +109,5 @@ def get_path(robot_name, algo, task):
         return f"{data_root}/lyapunov_td3/{robot_name}/lv_table.pkl"
     elif task == "video":
         return f"{data_root}/{algo}/{robot_name}/evaluation/video_"
+    elif task == "model_actor":
+        return f"{data_root}/{algo}/{robot_name}/model_actor.onnx"

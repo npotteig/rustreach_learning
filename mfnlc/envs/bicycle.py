@@ -195,7 +195,15 @@ class Bicycle(EnvBase):
         self.previous_goal_dist = goal_dist
 
         return goal_reward
+        # return -goal_dist
     
+    def get_velocity_reward(self, action):
+        vx = self.internal_state[2] * np.cos(self.internal_state[3])
+        vy = self.internal_state[2] * np.sin(self.internal_state[3])
+        vel = np.array([vx, vy])
+        goal_obs = self.goal_obs()
+        return -np.linalg.norm(action - goal_obs, ord=2)
+        
     def step_internal_state(self, action: np.ndarray):
         action = np.clip(action, self.action_space.low, self.action_space.high)
         ctrl = self.velocity_controller(action, self.internal_state)
@@ -213,11 +221,13 @@ class Bicycle(EnvBase):
 
         if self.end_on_collision and collision:
             done = True
-        else:
-            done = arrive
+        done = False
+        # else:
+        #     done = arrive
 
-        reward = self.get_goal_reward() + collision * self.collision_penalty + arrive * self.arrive_reward
-
+        # reward = self.get_goal_reward() + collision * self.collision_penalty + arrive * self.arrive_reward
+        reward = self.get_goal_reward() + collision * self.collision_penalty + self.get_velocity_reward(action)
+        
         self.traj.append(self.robot_pos)
 
         return self.get_obs(), reward, done, {"collision": collision, "goal_met": arrive}
