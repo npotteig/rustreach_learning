@@ -8,25 +8,35 @@ import numpy as np
 from mfnlc.envs.base import EnvBase
 
 
-class Bicycle(EnvBase):
+class Quadcopter(EnvBase):
     
-    C_H = -37.1967
-    C_M = 0.0342
-    C_A = 1.9569
-    L_F = 0.225
-    L_R = 0.225
+    G = 9.81
+    M = 1.2
+    I_X = 0.0123
+    I_Y = 0.0123
+    I_z = 0.0224
 
-    K_P_THETA = 1.0
-    K_P_V = 1.0
+    K_P_U = 0.75
+    K_P_V = 0.75
+    K_P_W = 1.0
     
-    STATE_SIZE = 4
+    K_P_PHI = 8.0
+    K_P_THETA = 8.0
+    K_P_PSI = 1.5
+    
+    K_P_P = 1.5
+    K_P_Q = 1.5
+    K_P_R = 1.0
+    
+    STATE_SIZE = 12
     ACTION_SIZE = 2
+    DER_ACTION_SIZE = 4
 
     def __init__(self,
                  no_obstacle=False,
                  end_on_collision=False,
                  fixed_init_and_goal=False):
-        super(Bicycle, self).__init__(no_obstacle,
+        super(Quadcopter, self).__init__(no_obstacle,
                                               end_on_collision,
                                               fixed_init_and_goal)
         self.arrive_radius = 0.2
@@ -37,13 +47,14 @@ class Bicycle(EnvBase):
         self.collision_penalty = -0.01
         self.arrive_reward = 20
         self.step_size = 0.1
-        self.robot_name = "Bicycle"
+        self.euler_step_size = 0.0002
+        self.robot_name = "Quadcopter"
 
         self.goal_size = 500
         self.subgoal_size = 100
 
-        self.floor_lb = np.array([-10., -10.], dtype=np.float32)
-        self.floor_ub = np.array([10., 10.], dtype=np.float32)
+        self.floor_lb = np.array([-10., -10., -10.], dtype=np.float32)
+        self.floor_ub = np.array([10., 10., 10.], dtype=np.float32)
 
         self.init = None
         self.goal = None
@@ -83,8 +94,8 @@ class Bicycle(EnvBase):
     def _build_sample_space(self):
         self.position_list = []
 
-        x_lb, y_lb = self.floor_lb
-        x_ub, y_ub = self.floor_ub
+        x_lb, y_lb, _ = self.floor_lb
+        x_ub, y_ub, _ = self.floor_ub
         if self.no_obstacle:
             # no obstacle env is only used for training. Use small map during training.
             grid_num_per_line = int(0.3 * (x_ub - x_lb) / (self.robot_radius * 4))
@@ -95,10 +106,11 @@ class Bicycle(EnvBase):
             x = np.linspace(0.95 * x_lb, 0.95 * x_ub, num=grid_num_per_line, dtype=np.float32)
             y = np.linspace(0.95 * y_lb, 0.95 * y_ub, num=grid_num_per_line, dtype=np.float32)
 
+        # Fix z to 0
         xv, yv = np.meshgrid(x, y)
         for i in range(len(x)):
             for j in range(len(y)):
-                self.position_list.append([xv[i, j], yv[i, j]])
+                self.position_list.append([xv[i, j], yv[i, j], 0.0])
 
     def _generate_map(self):
         if not self.fixed_init_and_goal:
@@ -113,8 +125,8 @@ class Bicycle(EnvBase):
         else:
             if self.goal is None or self.init is None:
                 positions = random.sample(self.position_list, 2)
-                self.init = np.array([0.0, 0.0], dtype=np.float32)
-                self.goal = np.array([-1.0, 0.0], dtype=np.float32)
+                self.init = np.array([0.0, 0.0, 0.0], dtype=np.float32)
+                self.goal = np.array([-1.0, 0.0, 0.0], dtype=np.float32)
 
             if not self.no_obstacle:
                 positions = random.sample(self.position_list, self.obstacle_num)
@@ -137,13 +149,13 @@ class Bicycle(EnvBase):
         random.seed(seed)
 
     def reset(self):
-        super(Bicycle, self).reset()
+        super(Quadcopter, self).reset()
 
         self._generate_map()
         self.robot_pos = self.init
         
-        self.internal_state = np.zeros(self.STATE_SIZE)
-        self.internal_state[:2] = self.robot_pos
+        self.internal_state = np.zeros(self.STATE_SIZE, dtype=np.float32)
+        self.internal_state[:3] = self.robot_pos
 
         self.previous_goal_dist = None
         self.prev_vec_to_goal = None
@@ -163,11 +175,11 @@ class Bicycle(EnvBase):
         return goal_obs
 
     def robot_obs(self) -> np.ndarray:
-        return self.internal_state[2:] 
+        return self.internal_state[3:] 
     
     def obstacle_obs(self) -> np.ndarray:
         if not self.no_obstacle:
-            vec_to_obs = self.obstacle_centers - self.robot_pos
+            vec_to_obs = self.obstacle_centers - self.robot_pos[:2]
             dist_to_obs = np.linalg.norm(vec_to_obs, ord=2, axis=-1)
             order = dist_to_obs.argsort()[:self.obstacle_in_obs]
 
@@ -180,14 +192,14 @@ class Bicycle(EnvBase):
             return False
 
         closest_dist = np.min(np.linalg.norm(
-            self.obstacle_centers - self.robot_pos, axis=-1, ord=2))
+            self.obstacle_centers - self.robot_pos[:2], axis=-1, ord=2))
         return closest_dist < self.robot_radius + self.obstacle_radius
 
     def arrive(self):
         return np.linalg.norm(self.goal - self.robot_pos, ord=2) < self.arrive_radius
     
     def get_goal_reward(self):
-        goal_dist = np.linalg.norm(self.goal_obs(), ord=2)
+        goal_dist = np.linalg.norm(self.goal_obs(), ord=3)
         if self.previous_goal_dist is None:
             goal_reward = 0.0
         else:
@@ -198,23 +210,25 @@ class Bicycle(EnvBase):
         # return -goal_dist
     
     def get_velocity_reward(self, action):
-        vx = self.internal_state[2] * np.cos(self.internal_state[3])
-        vy = self.internal_state[2] * np.sin(self.internal_state[3])
-        vel = np.array([vx, vy])
         goal_obs = self.goal_obs()
-        return -np.linalg.norm(action - goal_obs, ord=2)
+        return -np.linalg.norm(action - goal_obs[:2], ord=2)
         
     def step_internal_state(self, action: np.ndarray):
         action = np.clip(action, self.action_space.low, self.action_space.high)
-        ctrl = self.velocity_controller(action, self.internal_state)
-        der = self.get_derivative(self.internal_state, ctrl)
-        self.internal_state += der * self.step_size
-        self.internal_state[:2] = self.internal_state[:2].clip(self.floor_lb, self.floor_ub)
+        ctrl = self.velocity_controller(action, 0.0, self.internal_state, True)
+        t = 0
+        while t < self.step_size:
+            der = self.get_derivative(self.internal_state, ctrl)
+            self.internal_state += der * self.euler_step_size
+            t += self.euler_step_size
+        self.internal_state[:3] = self.internal_state[:3].clip(self.floor_lb, self.floor_ub)
         self.internal_state[3] = self.normalize_angle(self.internal_state[3])
+        self.internal_state[4] = self.normalize_angle(self.internal_state[4])
+        self.internal_state[5] = self.normalize_angle(self.internal_state[5])
 
     def step(self, action: np.ndarray):
         self.step_internal_state(action)
-        self.robot_pos = self.internal_state[:2]
+        self.robot_pos = self.internal_state[:3]
 
         collision = self.collision_detection()
         arrive = self.arrive()
@@ -289,7 +303,7 @@ class Bicycle(EnvBase):
         return normalized
 
     @classmethod
-    def velocity_controller(cls, v_des: np.ndarray, state: np.ndarray) -> np.ndarray:
+    def velocity_controller(cls, v_des: np.ndarray, z_des, state: np.ndarray, forward_looking: bool=True) -> np.ndarray:
         """
         Simple velocity controller. It will make the robot move towards the desired velocity.
         :param v_des: desired velocity
@@ -299,24 +313,38 @@ class Bicycle(EnvBase):
         assert len(v_des) == cls.ACTION_SIZE
         assert len(state) == cls.STATE_SIZE
         
-        cur_vx = state[2] * np.cos(state[3])
-        cur_vy = state[2] * np.sin(state[3])
+        x_dot_des = v_des[0]
+        y_dot_des = v_des[1]
         
-        e_vx = v_des[0] - cur_vx
-        e_vy = v_des[1] - cur_vy
+        z = state[2]
+        phi = state[3]
+        theta = state[4]
+        psi = state[5]
+        u = state[6]
+        v = state[7]
+        w = state[8]
+        p = state[9]
+        q = state[10]
+        r = state[11]
         
-        theta_des = np.arctan2(v_des[1], v_des[0])
-        e_theta = cls.normalize_angle(theta_des - state[3])
+        u_des = x_dot_des
+        v_des = y_dot_des
+        w_des = z_des - z
         
-        e_longitudinal = max(e_vx * np.cos(state[3]) + e_vy * np.sin(state[3]), 0.1)
-        throttle_input = (cls.K_P_V * e_longitudinal + cls.C_A * state[2]) / (cls.C_A * cls.C_M) + cls.C_H
-        # penalize large heading errors
-        if abs(e_theta) > np.pi / 2.0:
-            throttle_input *= 1.0 - abs(e_theta) / np.pi
+        theta_des = - cls.K_P_U * (u_des - u) / cls.G
+        phi_des = cls.K_P_V * (v_des - v) / cls.G
+        psi_dot = np.arctan2(y_dot_des, x_dot_des)
         
-        heading_input = np.clip(cls.K_P_THETA * e_theta, -np.pi / 4.0, np.pi / 4.0)
+        p_des = cls.K_P_PHI * (phi_des - phi)
+        q_des = cls.K_P_THETA * (theta_des - theta)
+        r_des = cls.K_P_PSI * cls.normalize_angle(psi_dot - psi) if forward_looking else 0.0
         
-        return np.array([heading_input, throttle_input])
+        f_t = -cls.M * cls.K_P_W * (w_des - w)
+        tor_x = cls.I_X * cls.K_P_P * (p_des - p)
+        tor_y = cls.I_Y * cls.K_P_Q * (q_des - q)
+        tor_z = cls.I_z * cls.K_P_R * (r_des - r)
+        
+        return np.array([f_t, tor_x, tor_y, tor_z])
     
     @classmethod
     def get_derivative(cls, state: np.ndarray, action: np.ndarray) -> np.ndarray:
@@ -327,32 +355,65 @@ class Bicycle(EnvBase):
         :return: derivative of the state
         """
         assert len(state) == cls.STATE_SIZE
-        assert len(action) == cls.ACTION_SIZE
+        assert len(action) == cls.DER_ACTION_SIZE
         
         der = np.zeros(cls.STATE_SIZE)
         
-        u = action[1]
-        delta = action[0]
-        v = state[2]
-        theta = state[3]
+        f_t = action[0]
+        tor_x = action[1]
+        tor_y = action[2]
+        tor_z = action[3]
         
-        # x' = v * cos(theta)
-        der[0] = v * np.cos(theta)
+        phi = state[3]
+        theta = state[4]
+        u = state[6]
+        v = state[7]
+        w = state[8]
+        p = state[9]
+        q = state[10]
+        r = state[11]
         
-        # y' = v * sin(theta)
-        der[1] = v * np.sin(theta)
+        # x' = u
+        der[0] = u
         
-        # v' = -ca * v + ca * cm * (u - ch)
-        der[2] = -cls.C_A * v + cls.C_A * cls.C_M * (u - cls.C_H)
+        # y' = v
+        der[1] = v
         
-        # theta' = v * (1.0 / (lf + lr)) * tan(delta)
-        der[3] = v * (1.0 / (cls.L_F + cls.L_R)) * np.tan(delta)
+        # z' = w
+        der[2] = w
+        
+        # phi' = p
+        der[3] = p
+        
+        # theta' = q
+        der[4] = q
+        
+        # psi' = r
+        der[5] = r
+        
+        # u' = -g * theta
+        der[6] = -cls.G * theta
+        
+        # v' = g * phi
+        der[7] = cls.G * phi
+        
+        # w' = -f_t / m
+        der[8] = -f_t / cls.M
+        
+        # p' = tor_x / I_x
+        der[9] = tor_x / cls.I_X
+        
+        # q' = tor_y / I_y
+        der[10] = tor_y / cls.I_Y
+        
+        # r' = tor_z / I_z
+        der[11] = tor_z / cls.I_z
         
         return der
 
 
 if __name__ == '__main__':
-    env = Bicycle(no_obstacle=True, fixed_init_and_goal=True)
+    env = Quadcopter(no_obstacle=True, fixed_init_and_goal=True)
     obs = env.reset()
     for _ in range(50):
         action = obs[:2]

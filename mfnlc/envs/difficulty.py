@@ -2,7 +2,7 @@ import numpy as np
 from typing import Union
 
 from mfnlc.config import env_config
-from mfnlc.envs import Continuous2DNav, Bicycle
+from mfnlc.envs import Continuous2DNav, Bicycle, Quadcopter
 from mfnlc.envs.base import SafetyGymBase
 
 
@@ -13,8 +13,8 @@ def choose_level(env,
     difficulty_config = env_config[robot_name]["difficulty"][level]
     floor_lb, floor_ub = np.array(difficulty_config[1], dtype=np.float32)
 
-    env: Union[Continuous2DNav, Bicycle, SafetyGymBase] = env.unwrapped
-    if isinstance(env, (Continuous2DNav, Bicycle)):
+    env: Union[Continuous2DNav, Bicycle, Quadcopter, SafetyGymBase] = env.unwrapped
+    if isinstance(env, (Continuous2DNav, Bicycle, Quadcopter)):
         env.update_env_config({
             "obstacle_num": difficulty_config[0],
             "floor_lb": floor_lb,

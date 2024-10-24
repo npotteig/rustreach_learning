@@ -3,7 +3,7 @@ from typing import List, Union
 import numpy as np
 # from safety_gym.envs.engine import Engine
 
-from mfnlc.envs import Continuous2DNav, Bicycle
+from mfnlc.envs import Continuous2DNav, Bicycle, Quadcopter
 from mfnlc.envs.base import SafetyGymBase
 from mfnlc.plan.common.geometry import ObjectBase, Circle
 
@@ -23,8 +23,8 @@ class SearchSpace:
 
     @classmethod
     def build_from_env(cls, env) -> 'SearchSpace':
-        if isinstance(env.unwrapped, (Continuous2DNav, Bicycle)):
-            env: Union[Continuous2DNav, Bicycle] = env.unwrapped
+        if isinstance(env.unwrapped, (Continuous2DNav, Bicycle, Quadcopter)):
+            env: Union[Continuous2DNav, Bicycle, Quadcopter] = env.unwrapped
 
             lb = env.floor_lb
             ub = env.floor_ub

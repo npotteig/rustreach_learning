@@ -11,6 +11,7 @@ from .doggo import DoggoNav
 from .nav import Continuous2DNav
 from .point import PointNav
 from .bicycle import Bicycle
+from .quadcopter import Quadcopter
 
 
 def get_env(env_name: str):
@@ -27,6 +28,8 @@ def get_env(env_name: str):
         env = TimeLimit(DoggoNav(), env_config[robot_name]["max_step"])
     elif env_name == "Bicycle":
         env = TimeLimit(Bicycle(), env_config[robot_name]["max_step"])
+    elif env_name == "Quadcopter":
+        env = TimeLimit(Quadcopter(), env_config[robot_name]["max_step"])
     # Training envs for controllers that do not consider obstacles
     elif env_name == "Nav-no-obst":
         env = TimeLimit(Continuous2DNav(no_obstacle=True), env_config[robot_name]["max_step"])
@@ -38,6 +41,8 @@ def get_env(env_name: str):
         env = TimeLimit(DoggoNav(no_obstacle=True), env_config[robot_name]["max_step"])
     elif env_name == "Bicycle-no-obst":
         env = TimeLimit(Bicycle(no_obstacle=True), env_config[robot_name]["max_step"])
+    elif env_name == "Quadcopter-no-obst":
+        env = TimeLimit(Quadcopter(no_obstacle=True), env_config[robot_name]["max_step"])
     # evaluation envs
     elif env_name == "Nav-eval":
         env = Continuous2DNav(end_on_collision=True)
@@ -49,6 +54,8 @@ def get_env(env_name: str):
         env = DoggoNav(end_on_collision=True)
     elif env_name == "Bicycle-eval":
         env = Bicycle(end_on_collision=True)
+    elif env_name == "Quadcopter-eval":
+        env = Quadcopter(end_on_collision=True)
     else:
         raise NotImplementedError(f"Unsupported environment - {env_name}")
 
