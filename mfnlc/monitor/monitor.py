@@ -156,12 +156,12 @@ class Monitor:
             self.current_goal = env.robot_pos
 
         if (gt != self.current_goal).any():
-            self.prev_goal = self.current_goal
-            self.mid_goal = self.prev_goal
+            self.prev_goal = copy.deepcopy(self.current_goal)
+            self.mid_goal = copy.deepcopy(self.prev_goal)
             self.direction_vec = gt - self.current_goal
             self.unit_direction_vec = self.direction_vec / np.linalg.norm(self.direction_vec)
             self.current_goal = gt
-
+            
         disp, lyapunov_r = self.choose_step_size(env.get_obs(), env.hazards_pos, env.obstacle_radius, env.robot_radius)
         self.mid_goal = self.mid_goal + disp
 
@@ -182,7 +182,7 @@ class Monitor:
         while step_size > self.search_step_size:
             disp = self.unit_direction_vec * step_size
             disp = self.clip_disp(disp)
-
+            
             query_obs = copy.deepcopy(obs)
             query_obs[:2] += disp
 
@@ -199,7 +199,7 @@ class Monitor:
             lyapunov_r = np.linalg.norm(obs[:2] + disp)
             obs_dist_min = np.min(
                 np.linalg.norm(self.mid_goal + disp - hazards_pos, axis=-1)) - obs_radius - robot_radius
-
+        
         return disp, min(lyapunov_r + robot_radius, obs_dist_min + robot_radius)
 
     def clip_disp(self, disp):

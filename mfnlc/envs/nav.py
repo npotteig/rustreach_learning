@@ -51,6 +51,15 @@ class Continuous2DNav(EnvBase):
     @property
     def hazards_pos(self):
         return self.obstacle_centers
+    
+    def set_goal(self, goal: np.ndarray):
+        self.goal = goal
+    
+    def set_robot_pos(self, pos: np.ndarray):
+        self.robot_pos = pos.astype(np.float32)
+        
+    def set_obstacle_centers(self, centers: np.ndarray):
+        self.obstacle_centers = centers
 
     def _build_space(self):
         action_high = np.ones(2, dtype=np.float32)

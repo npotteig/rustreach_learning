@@ -78,7 +78,7 @@ env_config = {
         }
     },
     "Bicycle": {
-        "max_step": 100,
+        "max_step": 200,
         "goal_dim": 2,
         "state_dim": 0,
         "sink": [0.0, 0.0, 0.0, 0.0],

@@ -1,4 +1,5 @@
 from typing import Dict
+import time
 
 import numpy as np
 
@@ -7,7 +8,6 @@ from mfnlc.envs import get_env
 from mfnlc.evaluation.model import load_model
 from mfnlc.monitor.monitor import Monitor
 from mfnlc.plan.common.path import Path
-
 
 def inspect_training_simu(env_name: str,
                           algo: str,
@@ -82,6 +82,8 @@ def simu(env,
     goal_met = False
     collision = False
     reward_sum = 0.0
+    deadline_violations = 0
+    subgoal_compute_times = []
 
     for i in range(n_steps):
         action = model.predict(obs)[0]
@@ -97,9 +99,13 @@ def simu(env,
                 env.set_subgoal(subgoal, store=True)
             else:
                 subgoal = path[subgoal_index]
-
             if monitor is not None:
+                start_time_us = int(time.time() * 1e6)
                 subgoal, lyapunov_r = monitor.select_subgoal(env, subgoal)
+                duration = int(time.time() * 1e6) - start_time_us
+                if duration >= 100_000:
+                    deadline_violations += 1
+                subgoal_compute_times.append(duration)
             env.set_subgoal(subgoal, store=False)
             env.set_roa(subgoal, lyapunov_r)  # noqa
 
@@ -115,6 +121,12 @@ def simu(env,
             break
 
     return {"total_step": total_step,
-            "collision": collision,
+            "TTG": env.unwrapped.step_size * total_step,
+            "collision": float(collision),
             "goal_met": goal_met,
-            "reward_sum": reward_sum}
+            "reward_sum": reward_sum,
+            "Avg Subgoal Compute Time": np.mean(subgoal_compute_times) if subgoal_compute_times else 0,
+            "Max Subgoal Compute Time": np.max(subgoal_compute_times) if subgoal_compute_times else 0,
+            "Deadline Violations": deadline_violations}
+    
+        

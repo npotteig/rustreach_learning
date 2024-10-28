@@ -31,9 +31,12 @@ class Bicycle(EnvBase):
                                               fixed_init_and_goal)
         self.arrive_radius = 0.2
         self.robot_radius = 0.15
+        self.robot_width = 0.25
+        self.robot_height = 0.15
         self.obstacle_num = 20
         self.obstacle_in_obs = 2
-        self.obstacle_radius = 0.15
+        self.obstacle_radius = np.sqrt(0.25**2 + 0.25**2)
+        self.obstacle_width = 0.5
         self.collision_penalty = -0.01
         self.arrive_reward = 20
         self.step_size = 0.1
@@ -66,6 +69,16 @@ class Bicycle(EnvBase):
     @property
     def hazards_pos(self):
         return self.obstacle_centers
+    
+    def set_goal(self, goal: np.ndarray):
+        self.goal = goal
+    
+    def set_robot_pos(self, pos: np.ndarray):
+        self.robot_pos = pos
+        self.internal_state[:2] = pos
+        
+    def set_obstacle_centers(self, centers: np.ndarray):
+        self.obstacle_centers = centers
 
     def _build_space(self):
         action_high = np.ones(self.ACTION_SIZE, dtype=np.float32) * self.action_max
@@ -75,7 +88,7 @@ class Bicycle(EnvBase):
         if self.no_obstacle:
             observation_high = 2 * self.floor_ub[0] * np.ones(self.STATE_SIZE, dtype=np.float32)
         else:
-            observation_high = 2 * np.ones(self.state_size + self.obstacle_in_obs * 2, dtype=np.float32)
+            observation_high = 2 * np.ones(self.STATE_SIZE + self.obstacle_in_obs * 2, dtype=np.float32)
             observation_high = (observation_high.reshape([-1, self.STATE_SIZE]) * self.floor_ub[0]).flatten()
         observation_low = -observation_high
         self.observation_space = gym.spaces.Box(observation_low, observation_high, dtype=np.float32)
@@ -179,9 +192,14 @@ class Bicycle(EnvBase):
         if self.no_obstacle:
             return False
 
-        closest_dist = np.min(np.linalg.norm(
-            self.obstacle_centers - self.robot_pos, axis=-1, ord=2))
-        return closest_dist < self.robot_radius + self.obstacle_radius
+        for obstacle in self.obstacle_centers:
+            x, y = self.robot_pos
+            x_obstacle, y_obstacle = obstacle
+            if x_obstacle - self.obstacle_width/2 <= x <= x_obstacle + self.obstacle_width/2 and y_obstacle - self.obstacle_width/2 <= y <= y_obstacle + self.obstacle_width/2:
+                return True
+            if x_obstacle - self.robot_width/2 <= x <= x_obstacle + self.robot_width/2 and y_obstacle - self.robot_height/2 <= y <= y_obstacle + self.robot_height/2:
+                return True
+        return False
 
     def arrive(self):
         return np.linalg.norm(self.goal - self.robot_pos, ord=2) < self.arrive_radius
@@ -221,9 +239,9 @@ class Bicycle(EnvBase):
 
         if self.end_on_collision and collision:
             done = True
-        done = False
-        # else:
-        #     done = arrive
+        # done = False
+        else:
+            done = arrive
 
         # reward = self.get_goal_reward() + collision * self.collision_penalty + arrive * self.arrive_reward
         reward = self.get_goal_reward() + collision * self.collision_penalty + self.get_velocity_reward(action)

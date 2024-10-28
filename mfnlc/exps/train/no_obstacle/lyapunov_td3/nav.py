@@ -12,7 +12,7 @@ def colearn():
           lqf_structure=[2 + 2, 64, 64, 1],
           tclf_ub=15,
           tclf_q_sigma=0,
-          total_timesteps=100_000,
+          total_timesteps=20_000,
           action_noise=action_noise,
           policy_kwargs={"net_arch": [32, 32]})
 
