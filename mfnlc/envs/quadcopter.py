@@ -40,10 +40,13 @@ class Quadcopter(EnvBase):
                                               end_on_collision,
                                               fixed_init_and_goal)
         self.arrive_radius = 0.2
-        self.robot_radius = 0.15
+        self.robot_radius = 0.16
+        self.robot_width = 0.32
+        self.robot_height = 0.32
         self.obstacle_num = 20
         self.obstacle_in_obs = 2
-        self.obstacle_radius = 0.15
+        self.obstacle_radius = 0.25
+        self.obstacle_width = 0.5
         self.collision_penalty = -0.01
         self.arrive_reward = 20
         self.step_size = 0.1
@@ -53,8 +56,8 @@ class Quadcopter(EnvBase):
         self.goal_size = 500
         self.subgoal_size = 100
 
-        self.floor_lb = np.array([-10., -10., -10.], dtype=np.float32)
-        self.floor_ub = np.array([10., 10., 10.], dtype=np.float32)
+        self.floor_lb = np.array([-10., -10.], dtype=np.float32)
+        self.floor_ub = np.array([10., 10.], dtype=np.float32)
 
         self.init = None
         self.goal = None
@@ -77,6 +80,16 @@ class Quadcopter(EnvBase):
     @property
     def hazards_pos(self):
         return self.obstacle_centers
+    
+    def set_goal(self, goal: np.ndarray):
+        self.goal = goal
+    
+    def set_robot_pos(self, pos: np.ndarray):
+        self.robot_pos = pos
+        self.internal_state[:2] = pos
+        
+    def set_obstacle_centers(self, centers: np.ndarray):
+        self.obstacle_centers = centers
 
     def _build_space(self):
         action_high = np.ones(self.ACTION_SIZE, dtype=np.float32) * self.action_max
@@ -86,16 +99,16 @@ class Quadcopter(EnvBase):
         if self.no_obstacle:
             observation_high = 2 * self.floor_ub[0] * np.ones(self.STATE_SIZE, dtype=np.float32)
         else:
-            observation_high = 2 * np.ones(self.state_size + self.obstacle_in_obs * 2, dtype=np.float32)
-            observation_high = (observation_high.reshape([-1, self.STATE_SIZE]) * self.floor_ub[0]).flatten()
+            observation_high = 2 * np.ones(self.STATE_SIZE + self.obstacle_in_obs * 2, dtype=np.float32)
+            observation_high = 2 * self.floor_ub[0] * np.ones(self.STATE_SIZE, dtype=np.float32)
         observation_low = -observation_high
         self.observation_space = gym.spaces.Box(observation_low, observation_high, dtype=np.float32)
 
     def _build_sample_space(self):
         self.position_list = []
 
-        x_lb, y_lb, _ = self.floor_lb
-        x_ub, y_ub, _ = self.floor_ub
+        x_lb, y_lb = self.floor_lb
+        x_ub, y_ub = self.floor_ub
         if self.no_obstacle:
             # no obstacle env is only used for training. Use small map during training.
             grid_num_per_line = int(0.3 * (x_ub - x_lb) / (self.robot_radius * 4))
@@ -110,7 +123,7 @@ class Quadcopter(EnvBase):
         xv, yv = np.meshgrid(x, y)
         for i in range(len(x)):
             for j in range(len(y)):
-                self.position_list.append([xv[i, j], yv[i, j], 0.0])
+                self.position_list.append([xv[i, j], yv[i, j]])
 
     def _generate_map(self):
         if not self.fixed_init_and_goal:
@@ -125,8 +138,8 @@ class Quadcopter(EnvBase):
         else:
             if self.goal is None or self.init is None:
                 positions = random.sample(self.position_list, 2)
-                self.init = np.array([0.0, 0.0, 0.0], dtype=np.float32)
-                self.goal = np.array([-1.0, 0.0, 0.0], dtype=np.float32)
+                self.init = np.array([0.0, 0.0], dtype=np.float32)
+                self.goal = np.array([-1.0, 0.0], dtype=np.float32)
 
             if not self.no_obstacle:
                 positions = random.sample(self.position_list, self.obstacle_num)
@@ -155,7 +168,7 @@ class Quadcopter(EnvBase):
         self.robot_pos = self.init
         
         self.internal_state = np.zeros(self.STATE_SIZE, dtype=np.float32)
-        self.internal_state[:3] = self.robot_pos
+        self.internal_state[:2] = self.robot_pos
 
         self.previous_goal_dist = None
         self.prev_vec_to_goal = None
@@ -175,11 +188,11 @@ class Quadcopter(EnvBase):
         return goal_obs
 
     def robot_obs(self) -> np.ndarray:
-        return self.internal_state[3:] 
+        return self.internal_state[2:] 
     
     def obstacle_obs(self) -> np.ndarray:
         if not self.no_obstacle:
-            vec_to_obs = self.obstacle_centers - self.robot_pos[:2]
+            vec_to_obs = self.obstacle_centers - self.robot_pos
             dist_to_obs = np.linalg.norm(vec_to_obs, ord=2, axis=-1)
             order = dist_to_obs.argsort()[:self.obstacle_in_obs]
 
@@ -187,19 +200,32 @@ class Quadcopter(EnvBase):
         else:
             return np.array([])
 
+    # def collision_detection(self):
+    #     if self.no_obstacle:
+    #         return False
+
+    #     for obstacle in self.obstacle_centers:
+    #         x, y = self.robot_pos
+    #         x_obstacle, y_obstacle = obstacle
+    #         if x_obstacle - self.obstacle_width/2 <= x <= x_obstacle + self.obstacle_width/2 and y_obstacle - self.obstacle_width/2 <= y <= y_obstacle + self.obstacle_width/2:
+    #             return True
+    #         if x_obstacle - self.robot_width/2 <= x <= x_obstacle + self.robot_width/2 and y_obstacle - self.robot_height/2 <= y <= y_obstacle + self.robot_height/2:
+    #             return True
+    #     return False
+    
     def collision_detection(self):
         if self.no_obstacle:
             return False
 
         closest_dist = np.min(np.linalg.norm(
-            self.obstacle_centers - self.robot_pos[:2], axis=-1, ord=2))
+            self.obstacle_centers - self.robot_pos, axis=-1, ord=2))
         return closest_dist < self.robot_radius + self.obstacle_radius
 
     def arrive(self):
         return np.linalg.norm(self.goal - self.robot_pos, ord=2) < self.arrive_radius
     
     def get_goal_reward(self):
-        goal_dist = np.linalg.norm(self.goal_obs(), ord=3)
+        goal_dist = np.linalg.norm(self.goal_obs(), ord=2)
         if self.previous_goal_dist is None:
             goal_reward = 0.0
         else:
@@ -221,23 +247,23 @@ class Quadcopter(EnvBase):
             der = self.get_derivative(self.internal_state, ctrl)
             self.internal_state += der * self.euler_step_size
             t += self.euler_step_size
-        self.internal_state[:3] = self.internal_state[:3].clip(self.floor_lb, self.floor_ub)
+        self.internal_state[:2] = self.internal_state[:2].clip(self.floor_lb, self.floor_ub)
         self.internal_state[3] = self.normalize_angle(self.internal_state[3])
         self.internal_state[4] = self.normalize_angle(self.internal_state[4])
         self.internal_state[5] = self.normalize_angle(self.internal_state[5])
 
     def step(self, action: np.ndarray):
         self.step_internal_state(action)
-        self.robot_pos = self.internal_state[:3]
+        self.robot_pos = self.internal_state[:2]
 
         collision = self.collision_detection()
         arrive = self.arrive()
 
         if self.end_on_collision and collision:
             done = True
-        done = False
-        # else:
-        #     done = arrive
+        # done = False
+        else:
+            done = arrive
 
         # reward = self.get_goal_reward() + collision * self.collision_penalty + arrive * self.arrive_reward
         reward = self.get_goal_reward() + collision * self.collision_penalty + self.get_velocity_reward(action)

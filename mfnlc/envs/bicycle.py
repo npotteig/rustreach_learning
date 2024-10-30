@@ -35,7 +35,7 @@ class Bicycle(EnvBase):
         self.robot_height = 0.15
         self.obstacle_num = 20
         self.obstacle_in_obs = 2
-        self.obstacle_radius = np.sqrt(0.25**2 + 0.25**2)
+        self.obstacle_radius = 0.25
         self.obstacle_width = 0.5
         self.collision_penalty = -0.01
         self.arrive_reward = 20
@@ -188,18 +188,26 @@ class Bicycle(EnvBase):
         else:
             return np.array([])
 
+    # def collision_detection(self):
+    #     if self.no_obstacle:
+    #         return False
+
+    #     for obstacle in self.obstacle_centers:
+    #         x, y = self.robot_pos
+    #         x_obstacle, y_obstacle = obstacle
+    #         if x_obstacle - self.obstacle_width/2 <= x <= x_obstacle + self.obstacle_width/2 and y_obstacle - self.obstacle_width/2 <= y <= y_obstacle + self.obstacle_width/2:
+    #             return True
+    #         if x_obstacle - self.robot_width/2 <= x <= x_obstacle + self.robot_width/2 and y_obstacle - self.robot_height/2 <= y <= y_obstacle + self.robot_height/2:
+    #             return True
+    #     return False
+    
     def collision_detection(self):
         if self.no_obstacle:
             return False
 
-        for obstacle in self.obstacle_centers:
-            x, y = self.robot_pos
-            x_obstacle, y_obstacle = obstacle
-            if x_obstacle - self.obstacle_width/2 <= x <= x_obstacle + self.obstacle_width/2 and y_obstacle - self.obstacle_width/2 <= y <= y_obstacle + self.obstacle_width/2:
-                return True
-            if x_obstacle - self.robot_width/2 <= x <= x_obstacle + self.robot_width/2 and y_obstacle - self.robot_height/2 <= y <= y_obstacle + self.robot_height/2:
-                return True
-        return False
+        closest_dist = np.min(np.linalg.norm(
+            self.obstacle_centers - self.robot_pos, axis=-1, ord=2))
+        return closest_dist < self.robot_radius + self.obstacle_radius
 
     def arrive(self):
         return np.linalg.norm(self.goal - self.robot_pos, ord=2) < self.arrive_radius
