@@ -1,12 +1,12 @@
 import numpy as np
 import pandas as pd
 
-from mfnlc.exps.line_exp.lyapunov.base import evaluate, build_lyapunov_table
+from mfnlc.exps.corr_exp.lyapunov.base import evaluate, build_lyapunov_table
 
-ENV_NAME = "Quadcopter-eval"
+ENV_NAME = "Bicycle-eval"
 
 def lyapunov_eval():
-    line_dataset_path = "rustreach_exp_data/line_exp/quadcopter/line_dataset.csv"
+    line_dataset_path = "rustreach_exp_data/corr_exp/bicycle/corr_dataset.csv"
     print(f"{ENV_NAME} - Lyapunov-TD3")
     evaluate(ENV_NAME,
                 n_rollout=1,
@@ -22,8 +22,8 @@ def lyapunov_eval():
                 line_dataset=pd.read_csv(line_dataset_path))
 
 def build_lv_table():
-    lb = np.array([-1, -1, -1, -5, -5, -5, -5, -5, -5, -5, -5, -5])
-    ub = np.array([1, 1, 1, 5, 5, 5, 5, 5, 5, 5, 5, 5])
+    lb = np.array([-1, -1, -5, -5])
+    ub = np.array([1, 1, 5, 5])
     build_lyapunov_table(ENV_NAME,
                          lb, ub,
                          pgd_max_iter=500,

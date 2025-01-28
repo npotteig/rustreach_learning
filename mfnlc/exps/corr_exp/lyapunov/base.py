@@ -74,8 +74,8 @@ def evaluate(env_name,
 
     res_dir = get_path(robot_name=env.robot_name, algo=ALGO, task="evaluation") + "/line_exp"
     os.makedirs(res_dir, exist_ok=True)
-    stat.to_csv(res_dir + f"/line_eval_output.csv")
-    print("results are saved to:", res_dir + f"/line_eval_output.csv")
+    stat.to_csv(res_dir + f"/mfnlc_corr_output.csv")
+    print("results are saved to:", res_dir + f"/mfnlc_corr_output.csv")
 
     env.close()
 

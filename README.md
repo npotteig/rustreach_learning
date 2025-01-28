@@ -1,10 +1,11 @@
-# Neural Lyapunov Deep Reinforcement Learning
+# RusTReach Learning Repository
 
-Code Repository of IROS 22' paper **Model-free Neural Lyapunov Control for Safe Robot Navigation**
+This is the codebase for learning model weights for RusTReach experiments and testing the MFNLC approach.
 
-[ArXiv](https://arxiv.org/abs/2203.01190) | [Demos](https://sites.google.com/view/mf-nlc)
+Fork of Code Repository of IROS 22' paper **Model-free Neural Lyapunov Control for Safe Robot Navigation**
 
-https://user-images.githubusercontent.com/73256697/184549907-50287e7f-fc0c-46fa-baf9-58660e8634eb.mp4
+[ArXiv](https://arxiv.org/abs/2203.01190) 
+
 
 ## Project Structure
 
@@ -30,32 +31,41 @@ https://user-images.githubusercontent.com/73256697/184549907-50287e7f-fc0c-46fa-
 pip install -e .
 ```
 
-2. Configure MuJoCo-py by following official [README](https://github.com/openai/mujoco-py).
-3. (Optional) Download pretrained models (~35 MB)
-
-```commandline
-bash download.sh
+## Learning RusTReach Model Weights
+ 
+```shell
+python exps/train/no_obstacle/lyapunov_td3/bicycle.py
 ```
 
-## Quick Start
+```shell
+python exps/train/no_obstacle/lyapunov_td3/quadcopter.py
+```
 
-Two quick start examples:
 
-1. Co-learning low-level controller and neural Lyapunov function  
-   `python exps/train/no_obstacle/lyapunov_td3/[robot-name].py`
+## Convert Model to ONNX
 
-2. Pre-compute monitor and evaluate  
-   `python exps/hierachical/rrt_lyapunov/[robot-name].py`
+```shell
+python evaluation/convert_to_onnx.py --robot_name ["Bicycle", "Quadcopter"]
+```
 
-One can start tracing code from `exps` folder.
+## Evaluate MFNLC
 
-## Bibtex
+### Corridor
 
-```bibtex
-@inproceedings{Xiong2022ModelfreeNL,
-  title={Model-free Neural Lyapunov Control for Safe Robot Navigation},
-  author={Zikang Xiong and Joe Eappen and Ahmed H. Qureshi and Suresh Jagannathan},
-  booktitle={2022 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)},
-  year={2022},
-}
+```shell
+python exps/corr_exp/lyapunov/bicycle.py
+```
+
+```shell
+python exps/corr_exp/lyapunov/quadcopter.py
+```
+
+### Neighborhood
+
+```shell
+python exps/nbd_exp/lyapunov/bicycle.py
+```
+
+```shell
+python exps/nbd_exp/lyapunov/quadcopter.py
 ```

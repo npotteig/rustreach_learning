@@ -78,29 +78,25 @@ env_config = {
         }
     },
     "Bicycle": {
-        "max_step": 200,
+        "max_step": 1000,
         "goal_dim": 2,
-        "state_dim": 0,
+        "state_dim": 4,
         "sink": [0.0, 0.0, 0.0, 0.0],
         "difficulty": {
             # number of obstacle | map size
-            1: [8, [[-1, -1], [1, 1]]],
-            2: [32, [[-2, -2], [2, 2]]],
-            3: [128, [[-4, -4], [4, 4]]]
+            1: [1634, [[-50, -50], [50, 50]]],
         }
     },
     "Quadcopter": {
         "max_step": 200,
         "goal_dim": 3,
-        "state_dim": 0,
+        "state_dim": 12,
         "sink": [0.0, 0.0, 0.0, 0.0,
                  0.0, 0.0, 0.0, 0.0,
                  0.0, 0.0, 0.0, 0.0],
         "difficulty": {
             # number of obstacle | map size
-            1: [8, [[-1, -1], [1, 1]]],
-            2: [32, [[-2, -2], [2, 2]]],
-            3: [128, [[-4, -4], [4, 4]]]
+            1: [1634, [[-50, -50], [50, 50]]],
         }
     },
 }
@@ -124,4 +120,4 @@ def get_path(robot_name, algo, task):
     elif task == "video":
         return f"{data_root}/{algo}/{robot_name}/evaluation/video_"
     elif task == "model_actor":
-        return f"{data_root}/{algo}/{robot_name}/model_actor.onnx"
+        return f"{data_root}/{algo}/{robot_name}/{robot_name}_model_actor.onnx"
