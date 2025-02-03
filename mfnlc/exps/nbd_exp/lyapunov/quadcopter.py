@@ -8,7 +8,7 @@ ENV_NAME = "Quadcopter-eval"
 def lyapunov_eval():
     path_dataset_path = "rustreach_exp_data/nbd_exp/astar_rustreach_paths.csv"
     path_data = np.loadtxt(path_dataset_path, delimiter=",")
-    obstacle_dataset_path = "rustreach_exp_data/nbd_exp/rr_nbd_obstacles.csv"
+    obstacle_dataset_path = "rustreach_exp_data/nbd_exp/rr_nbd_obstacles_near_path.csv"
     obstacle_data = np.loadtxt(obstacle_dataset_path, delimiter=",")
     print(f"{ENV_NAME} - Lyapunov-TD3")
     evaluate(ENV_NAME,

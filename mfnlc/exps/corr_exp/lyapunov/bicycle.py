@@ -19,7 +19,9 @@ def lyapunov_eval():
                 arrive_radius=0.2,
                 render=False,
                 seed=0,
-                line_dataset=pd.read_csv(line_dataset_path))
+                line_dataset=pd.read_csv(line_dataset_path),
+                dynamic_obstacles=False,
+                )
 
 def build_lv_table():
     lb = np.array([-1, -1, -5, -5])

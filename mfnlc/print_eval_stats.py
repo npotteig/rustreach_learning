@@ -2,13 +2,19 @@ import pandas as pd
 
 from mfnlc.config import get_path
 
-ROBOT_NAME = "Quadcopter"
+ROBOT_NAME = "Bicycle"
+OBSTACLE_TYPE = "dynamic"
 ALGO = "rrt_lyapunov"
-TOTAL_STEPS = 1000
+CORR_EXP = False
+TOTAL_STEPS = 200 if CORR_EXP else 1000
 
 
 if __name__ == "__main__":
-    res_path = get_path(robot_name=ROBOT_NAME, algo=ALGO, task="evaluation") + "/path_exp/path_eval_output.csv"
+    if CORR_EXP:
+        pth = f"/corr_exp/mfnlc_{OBSTACLE_TYPE}_corr_output.csv"
+    else:
+        pth = f"/nbd_exp/mfnlc_{OBSTACLE_TYPE}_nbd_output.csv"
+    res_path = get_path(robot_name=ROBOT_NAME, algo=ALGO, task="evaluation") + pth
     
     df = pd.read_csv(res_path)
     

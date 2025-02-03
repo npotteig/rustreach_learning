@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Callable
 import time
 
 import numpy as np
@@ -58,12 +58,14 @@ def inspect_training_simu(env_name: str,
 
 def simu(env,
          model,
+         update_obstacles: Callable,
          n_steps: int,
          path: Path = None,
          arrive_radius: float = 0.0,
          monitor: Monitor = None,
          render: bool = False,
-         render_config: Dict = {}  # noqa
+         render_config: Dict = {},  # noqa
+         set_obs_pos: Callable = None,
          ):
     obs = env.get_obs()
 
@@ -73,6 +75,8 @@ def simu(env,
     subgoal_index = 0
     if path is not None:
         env.set_subgoal(path[subgoal_index])
+    if set_obs_pos is not None and np.linalg.norm(env.robot_pos - path[subgoal_index]) > 4.0:
+        set_obs_pos(env, path[subgoal_index-1], path[subgoal_index])
 
     env.set_render_config(render_config)
     if render:
@@ -94,7 +98,12 @@ def simu(env,
         if path is not None:
             if np.linalg.norm(env.robot_pos - path[subgoal_index]) < arrive_radius:
                 subgoal_index += 1
-                subgoal_index = min(len(path) - 1, subgoal_index)
+                if subgoal_index == len(path):
+                    subgoal_index -= 1
+                else:
+                    if set_obs_pos is not None and np.linalg.norm(path[subgoal_index-1] - path[subgoal_index]) > 4.0:
+                        set_obs_pos(env, path[subgoal_index-1], path[subgoal_index])
+                # subgoal_index = min(len(path) - 1, subgoal_index)
                 subgoal = path[subgoal_index]
                 env.set_subgoal(subgoal, store=True)
             else:
@@ -108,6 +117,7 @@ def simu(env,
                 subgoal_compute_times.append(duration)
             env.set_subgoal(subgoal, store=False)
             env.set_roa(subgoal, lyapunov_r)  # noqa
+            update_obstacles(env)
 
         if render:
             if path is not None and monitor is not None:
