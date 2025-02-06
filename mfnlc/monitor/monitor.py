@@ -1,5 +1,6 @@
 import copy
 import pickle
+import io
 import time
 from typing import Optional, Tuple
 
@@ -8,6 +9,14 @@ import torch as th
 
 from mfnlc.envs.base import ObstacleMaskWrapper
 from mfnlc.learn.tclf import TwinControlLyapunovFunction
+
+device = th.device("cuda" if th.cuda.is_available() else "cpu")
+
+class Custom_Unpickler(pickle.Unpickler):
+    def find_class(self, module_name, global_name):
+        if module_name == "torch.storage" and global_name == "_load_from_bytes":
+            return lambda b: th.load(io.BytesIO(b), map_location=device)
+        return super().find_class(module_name, global_name)
 
 
 class LyapunovValueTable:
@@ -54,7 +63,7 @@ class LyapunovValueTable:
     def load(cls, path: str) -> 'LyapunovValueTable':
         table = cls(None, None, None)
         with open(path, "rb") as f:
-            table.lyapunov_values, table.lyapunov_radius, table.tclf = pickle.load(f)
+            table.lyapunov_values, table.lyapunov_radius, table.tclf = Custom_Unpickler(f).load()
         return table
 
     def query(self, obs: np.ndarray) -> float:

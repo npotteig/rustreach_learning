@@ -8,6 +8,7 @@ from torch import nn
 from mfnlc.config import default_device
 from mfnlc.learn.utils import bound_loss, build_nn
 
+device = th.device("cuda" if th.cuda.is_available() else "cpu")
 
 class InputAmplifierBase:
     """
@@ -62,7 +63,7 @@ class TwinControlLyapunovFunction(nn.Module):
         return self.lqf(th.cat([inpt, a], axis=-1))
 
     def predict(self, obs: np.ndarray) -> np.ndarray:
-        inpt = th.tensor(obs, dtype=th.float32, device=self.device)
+        inpt = th.tensor(obs, dtype=th.float32, device=device)
         with th.no_grad():
             v = self.forward_lf(inpt)
 

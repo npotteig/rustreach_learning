@@ -19,6 +19,8 @@ from mfnlc.config import default_device
 from mfnlc.learn.tclf import TwinControlLyapunovFunction
 from mfnlc.learn.utils import list_dict_to_dict_list
 
+override_device = th.device("cuda" if th.cuda.is_available() else "cpu")
+
 
 class LyapunovTD3(TD3):
     """
@@ -297,7 +299,7 @@ class LyapunovTD3(TD3):
             if "env" in data:
                 env = data["env"]
 
-        tclf = th.load(f"{os.path.dirname(path)}/tclf.pth")
+        tclf = th.load(f"{os.path.dirname(path)}/tclf.pth", map_location=override_device)
         # noinspection PyArgumentList
         model = cls(  # pytype: disable=not-instantiable,wrong-keyword-args
             tclf=tclf,

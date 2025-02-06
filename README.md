@@ -24,10 +24,12 @@ Fork of Code Repository of IROS 22' paper **Model-free Neural Lyapunov Control f
 ```
 
 ## Install
+**Note** A gpu is required to train and run these experiments.
 
 1. Install necessary dependencies.
 
 ```commandline
+pip install pip==21.0.1
 pip install -e .
 ```
 
