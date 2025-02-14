@@ -3,7 +3,7 @@ import pandas as pd
 
 from mfnlc.exps.nbd_exp.lyapunov.base import evaluate, build_lyapunov_table
 
-ENV_NAME = "Quadcopter-eval"
+ENV_NAME = "Quadcopter-eval-nbd"
 
 def lyapunov_eval():
     path_dataset_path = "rustreach_exp_data/nbd_exp/astar_rustreach_paths.csv"
@@ -23,7 +23,8 @@ def lyapunov_eval():
                 render=False,
                 seed=0,
                 path_dataset=[path_data[path_data[:, 0] == i][:, 1:].tolist() for i in range(0, 1000)],
-                obstacle_centers=obstacle_data)
+                obstacle_dataset=obstacle_data,
+                dynamic_obstacles=False,)
 
 def build_lv_table():
     lb = np.array([-1, -1, -1, -5, -5, -5, -5, -5, -5, -5, -5, -5])

@@ -2,7 +2,7 @@ import pandas as pd
 
 from mfnlc.config import get_path
 
-ROBOT_NAME = "Bicycle"
+ROBOT_NAME = "Quadcopter"
 OBSTACLE_TYPE = "dynamic"
 ALGO = "rrt_lyapunov"
 CORR_EXP = False

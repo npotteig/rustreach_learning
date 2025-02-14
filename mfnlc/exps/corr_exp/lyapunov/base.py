@@ -64,7 +64,7 @@ def evaluate(env_name,
         
         env.unwrapped.set_goal(np.array([row["goal_x"], row["goal_y"]]))
         env.unwrapped.set_robot_pos(np.array([row["vehicle_x"], row["vehicle_y"]]))
-        env.unwrapped.set_obstacle_centers(np.array([[2, 0.7], [2, -0.7]]))
+        env.unwrapped.set_obstacle_centers(np.array([[2, 0.7], [2, -0.7], [2, 1.4], [2, -1.4]]))
         
         res = simu(env=env,
                    model=model,

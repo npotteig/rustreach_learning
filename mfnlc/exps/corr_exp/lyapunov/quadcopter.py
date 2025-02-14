@@ -3,7 +3,7 @@ import pandas as pd
 
 from mfnlc.exps.corr_exp.lyapunov.base import evaluate, build_lyapunov_table
 
-ENV_NAME = "Quadcopter-eval"
+ENV_NAME = "Quadcopter-eval-corr"
 
 def lyapunov_eval():
     line_dataset_path = "rustreach_exp_data/corr_exp/quadcopter/corr_dataset.csv"
@@ -20,7 +20,7 @@ def lyapunov_eval():
                 render=False,
                 seed=0,
                 line_dataset=pd.read_csv(line_dataset_path),
-                dynamic_obstacles=True,
+                dynamic_obstacles=False,
                 )
 
 def build_lv_table():

@@ -52,10 +52,14 @@ def get_env(env_name: str):
         env = CarNav(end_on_collision=True)
     elif env_name == "Doggo-eval":
         env = DoggoNav(end_on_collision=True)
-    elif env_name == "Bicycle-eval":
-        env = Bicycle(end_on_collision=True)
-    elif env_name == "Quadcopter-eval":
-        env = Quadcopter(end_on_collision=True)
+    elif env_name == "Bicycle-eval-corr":
+        env = TimeLimit(Bicycle(end_on_collision=True), env_config[robot_name]["eval_corr_max_step"])
+    elif env_name == "Bicycle-eval-nbd":
+        env = TimeLimit(Bicycle(end_on_collision=True), env_config[robot_name]["eval_nbd_max_step"])
+    elif env_name == "Quadcopter-eval-corr":
+        env = TimeLimit(Quadcopter(end_on_collision=True), env_config[robot_name]["eval_corr_max_step"])
+    elif env_name == "Quadcopter-eval-nbd":
+        env = TimeLimit(Quadcopter(end_on_collision=True), env_config[robot_name]["eval_nbd_max_step"])
     else:
         raise NotImplementedError(f"Unsupported environment - {env_name}")
 

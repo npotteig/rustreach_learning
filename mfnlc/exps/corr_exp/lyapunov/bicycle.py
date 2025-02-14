@@ -3,7 +3,7 @@ import pandas as pd
 
 from mfnlc.exps.corr_exp.lyapunov.base import evaluate, build_lyapunov_table
 
-ENV_NAME = "Bicycle-eval"
+ENV_NAME = "Bicycle-eval-corr"
 
 def lyapunov_eval():
     line_dataset_path = "rustreach_exp_data/corr_exp/bicycle/corr_dataset.csv"

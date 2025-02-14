@@ -75,7 +75,7 @@ def simu(env,
     subgoal_index = 0
     if path is not None:
         env.set_subgoal(path[subgoal_index])
-    if set_obs_pos is not None and np.linalg.norm(env.robot_pos - path[subgoal_index]) > 4.0:
+    if set_obs_pos is not None and np.linalg.norm(env.robot_pos - path[subgoal_index]) > 3.0:
         set_obs_pos(env, path[subgoal_index-1], path[subgoal_index])
 
     env.set_render_config(render_config)

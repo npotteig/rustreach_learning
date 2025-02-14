@@ -78,7 +78,9 @@ env_config = {
         }
     },
     "Bicycle": {
-        "max_step": 1000,
+        "max_step": 200,
+        "eval_corr_max_step": 200,
+        "eval_nbd_max_step": 1000,
         "goal_dim": 2,
         "state_dim": 4,
         "sink": [0.0, 0.0, 0.0, 0.0],
@@ -89,6 +91,8 @@ env_config = {
     },
     "Quadcopter": {
         "max_step": 200,
+        "eval_corr_max_step": 200,
+        "eval_nbd_max_step": 1000,
         "goal_dim": 3,
         "state_dim": 12,
         "sink": [0.0, 0.0, 0.0, 0.0,
